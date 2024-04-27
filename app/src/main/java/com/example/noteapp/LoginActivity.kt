@@ -23,24 +23,28 @@ class LoginActivity : AppCompatActivity() {
         loginButton.setOnClickListener {
             val username = usernameEditText.text.toString()
             val password = passwordEditText.text.toString()
-            val intent = Intent(this@LoginActivity, MainActivity::class.java)
-            startActivity(intent)
             if (username.isNotEmpty() && password.isNotEmpty()) {
-                // 向服务器发送请求，验证用户名和密码
-                val response = sendPostRequest("http://127.0.0.1/user/login", "username=$username&password=$password")
-                // 在这里处理服务器的响应
-                if (response.contains("success")) {
-                    // 如果登录成功，跳转到MainActivity
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    finish() // 如果你希望用户在按下返回键时不返回到登录页面，可以调用finish()方法来结束当前Activity
-                }
-                AlertDialog.Builder(this@LoginActivity)
-                    .setTitle("服务器响应")
-                    .setMessage(response)
-                    .setPositiveButton("OK", null)
-                    .show()
-
+                Thread {
+                    // 向服务器发送请求，验证用户名和密码
+                    val response = sendPostRequest(
+                        "http://10.0.2.2:8000/user/login/",
+                        "username=$username&password=$password"
+                    )
+                    // 在这里处理服务器的响应
+                    runOnUiThread {
+                        AlertDialog.Builder(this@LoginActivity)
+                            .setTitle("服务器响应")
+                            .setMessage(response)
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                    if (response.contains("success")) {
+                        // 如果登录成功，跳转到MainActivity
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        finish() //调用finish()方法来结束当前Activity
+                    }
+                }.start()
             }
         }
 
@@ -52,7 +56,7 @@ class LoginActivity : AppCompatActivity() {
 //                // 向服务器发送请求，注册新用户
 //                Thread {
 //
-//                    val response = sendPostRequest("http://127.0.0.1/user/register", "username=$username&password=$password")
+//                    val response = sendPostRequest("http://127.0.0.1:8000/user/register", "username=$username&password=$password")
 //                    // 在这里处理服务器的响应
 //                    runOnUiThread {
 //                        AlertDialog.Builder(this@LoginActivity)
@@ -82,7 +86,7 @@ private fun sendPostRequest(urlString: String, postData: String): String {
     val responseCode = conn.responseCode
     if (responseCode == HttpURLConnection.HTTP_OK) {
         val inputStream = conn.inputStream
-        return inputStream.bufferedReader().use { it.readText() }  // defaults to UTF-8
+        return inputStream.bufferedReader().use { it.readText() }
     } else {
         return "POST request not worked"
     }
