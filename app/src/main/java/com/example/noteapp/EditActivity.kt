@@ -1,5 +1,6 @@
 package com.example.noteapp
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -12,6 +13,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class EditActivity : AppCompatActivity() {
@@ -24,12 +28,14 @@ class EditActivity : AppCompatActivity() {
         val addAudioButton = findViewById<Button>(R.id.addAudioButton)
         val formatTextButton = findViewById<Button>(R.id.formatTextButton)
         val saveButton = findViewById<Button>(R.id.saveButton)
+        val titleEditText = findViewById<EditText>(R.id.titleEditText)
+        val noteEditText = findViewById<EditText>(R.id.noteEditText)
+
 
         addImageButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             // 启动图片选择器
             startActivityForResult(intent, PICK_IMAGE_REQUEST)
-
         }
 
         addAudioButton.setOnClickListener {
@@ -42,6 +48,30 @@ class EditActivity : AppCompatActivity() {
 
         saveButton.setOnClickListener {
             // 在这里编写保存的代码
+            val title = titleEditText.text.toString()
+            val note = noteEditText.text.toString()
+            val summary = if (note.length > 10) note.substring(0, 10) else note
+            val currentTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
+                Date()
+            )
+            val data = Intent().apply {
+                putExtra("title", title)
+                putExtra("summary", summary)
+                putExtra("time", currentTime)
+            }
+            setResult(Activity.RESULT_OK, data)
+            finish()
+        }
+        titleEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                // 当标题EditText获得焦点时，使插入图片和音频的按钮失效
+                addImageButton.isEnabled = false
+                addAudioButton.isEnabled = false
+            } else {
+                // 当标题EditText失去焦点时，使插入图片和音频的按钮有效
+                addImageButton.isEnabled = true
+                addAudioButton.isEnabled = true
+            }
         }
     }
 

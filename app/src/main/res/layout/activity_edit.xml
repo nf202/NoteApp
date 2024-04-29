@@ -5,6 +5,15 @@
     android:orientation="vertical">
 
     <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入标题"
+        android:inputType="text"
+        android:padding="16dp"
+        android:textSize="36dp" />
+
+    <EditText
         android:id="@+id/noteEditText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
