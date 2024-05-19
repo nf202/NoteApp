@@ -41,6 +41,7 @@ class LoginActivity : AppCompatActivity() {
                     if (response.contains("success")) {
                         // 如果登录成功，跳转到MainActivity
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        intent.putExtra("username", username)
                         startActivity(intent)
                         finish() //调用finish()方法来结束当前Activity
                     }
