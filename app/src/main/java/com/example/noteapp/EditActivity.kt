@@ -53,12 +53,14 @@ class EditActivity : AppCompatActivity() {
         val noteEditText = findViewById<EditText>(R.id.noteEditText)
         val username = intent.getStringExtra("username")
         print(username)
+        val mode = intent.getStringExtra("mode")
+        var time: String? = null
         // 获取Intent中的额外数据
         if (intent.hasExtra("title")) {
             val title = intent.getStringExtra("title")
             val note = intent.getStringExtra("note")
             val imagesJsonString = intent.getStringExtra("images")
-
+            time = intent.getStringExtra("time")
             // 将title和note显示在对应的控件中
             titleEditText.setText(title)
             noteEditText.setText(note)
@@ -127,58 +129,117 @@ class EditActivity : AppCompatActivity() {
             }
             Thread {
                 // 构建你的 JSON 数据
-                val jsonObject = JSONObject()
-                jsonObject.put("username", username)
-                jsonObject.put("title", title)
-                jsonObject.put("note", note)
-                jsonObject.put("summary", summary)
-                jsonObject.put("time", currentTime)
-                val imagesJsonArray = JSONArray()
-                for (image in images) {
-                    val imageJsonObject = JSONObject()
-                    imageJsonObject.put("start", image.first)
-                    imageJsonObject.put("base64", image.second)
-                    imagesJsonArray.put(imageJsonObject)
-                }
-                jsonObject.put("images", imagesJsonArray)
-                val json = "application/json; charset=utf-8".toMediaType()
-                val body = RequestBody.create(json, jsonObject.toString())
+                if(mode == "add") {
+                    val jsonObject = JSONObject()
+                    jsonObject.put("username", username)
+                    jsonObject.put("title", title)
+                    jsonObject.put("note", note)
+                    jsonObject.put("summary", summary)
+                    jsonObject.put("time", currentTime)
+                    val imagesJsonArray = JSONArray()
+                    for (image in images) {
+                        val imageJsonObject = JSONObject()
+                        imageJsonObject.put("start", image.first)
+                        imageJsonObject.put("base64", image.second)
+                        imagesJsonArray.put(imageJsonObject)
+                    }
+                    jsonObject.put("images", imagesJsonArray)
+                    val json = "application/json; charset=utf-8".toMediaType()
+                    val body = RequestBody.create(json, jsonObject.toString())
+                    val request = Request.Builder()
+                        .url("http://10.0.2.2:8000/note/store_note/")
+                        .post(body)
+                        .build()
+                    val client = OkHttpClient()
+                    client.newCall(request).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            e.printStackTrace()
+                        }
 
-                val request = Request.Builder()
-                    .url("http://10.0.2.2:8000/note/store_note/")
-                    .post(body)
-                    .build()
-                val client = OkHttpClient()
-                client.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        e.printStackTrace()
-                    }
-                    override fun onResponse(call: Call, response: Response) {
-                        if (!response.isSuccessful) {
-                            throw IOException("Unexpected code $response")
-                        }
-                        val responseBody = response.body?.string()
-                        // 处理响应
-                        runOnUiThread {
-                            AlertDialog.Builder(this@EditActivity)
-                                .setTitle("服务器响应")
-                                .setMessage(responseBody)
-                                .setPositiveButton("OK", null)
-                                .show()
-                        }
-                        if (responseBody?.contains("success") == true) {
-                            // 如果保存成功，结束当前Activity
-                            // finish()
-                            val data = Intent().apply {
-                                putExtra("title", title)
-                                putExtra("summary", summary)
-                                putExtra("time", currentTime)
+                        override fun onResponse(call: Call, response: Response) {
+                            if (!response.isSuccessful) {
+                                throw IOException("Unexpected code $response")
                             }
-                            setResult(RESULT_OK, data)
-                            finish()
+                            val responseBody = response.body?.string()
+                            // 处理响应
+                            runOnUiThread {
+                                AlertDialog.Builder(this@EditActivity)
+                                    .setTitle("服务器响应")
+                                    .setMessage(responseBody)
+                                    .setPositiveButton("OK", null)
+                                    .show()
+                            }
+                            if (responseBody?.contains("success") == true) {
+                                // 如果保存成功，结束当前Activity
+                                // finish()
+                                val data = Intent().apply {
+                                    putExtra("title", title)
+                                    putExtra("summary", summary)
+                                    putExtra("time", currentTime)
+                                }
+                                setResult(RESULT_OK, data)
+                                finish()
+                            }
                         }
+                    })
+                } else {
+                    val jsonObject = JSONObject()
+                    jsonObject.put("username", username)
+                    jsonObject.put("title", title)
+                    jsonObject.put("note", note)
+                    jsonObject.put("summary", summary)
+                    jsonObject.put("time", currentTime)
+                    jsonObject.put("old_time", time)
+                    val imagesJsonArray = JSONArray()
+                    for (image in images) {
+                        val imageJsonObject = JSONObject()
+                        imageJsonObject.put("start", image.first)
+                        imageJsonObject.put("base64", image.second)
+                        imagesJsonArray.put(imageJsonObject)
                     }
-                })
+                    jsonObject.put("images", imagesJsonArray)
+                    val json = "application/json; charset=utf-8".toMediaType()
+                    val body = RequestBody.create(json, jsonObject.toString())
+                    val request = Request.Builder()
+                        .url("http://10.0.2.2:8000/note/change_note/")
+                        .post(body)
+                        .build()
+                    val client = OkHttpClient()
+                    client.newCall(request).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            e.printStackTrace()
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            if (!response.isSuccessful) {
+                                throw IOException("Unexpected code $response")
+                            }
+                            val responseBody = response.body?.string()
+                            // 处理响应
+                            runOnUiThread {
+                                AlertDialog.Builder(this@EditActivity)
+                                    .setTitle("服务器响应")
+                                    .setMessage(responseBody)
+                                    .setPositiveButton("OK", null)
+                                    .show()
+                            }
+                            if (responseBody?.contains("success") == true) {
+                                // 如果保存成功，结束当前Activity
+                                // finish()
+                                val data = Intent().apply {
+                                    putExtra("title", title)
+                                    putExtra("summary", summary)
+                                    putExtra("time", currentTime)
+                                    putExtra("old_time", time)
+                                }
+                                setResult(RESULT_OK, data)
+                                finish()
+                            }
+                        }
+                    })
+
+                }
+
             }.start()
 
         }
