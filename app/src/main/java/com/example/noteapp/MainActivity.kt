@@ -151,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == EDIT_NOTE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             // 获取返回的结果
             val title = data.getStringExtra("title")
+            val category = data.getStringExtra("category")
             val summary = data.getStringExtra("summary")
             val time = data.getStringExtra("time")
 
@@ -159,10 +160,12 @@ class MainActivity : AppCompatActivity() {
 
             // 设置标题，时间，和简介
             val titleTextView = noteView.findViewById<TextView>(R.id.noteTitle)
+            val categoryTextView = noteView.findViewById<TextView>(R.id.noteCategory)
             val timeTextView = noteView.findViewById<TextView>(R.id.noteTime)
             val summaryTextView = noteView.findViewById<TextView>(R.id.noteSummary)
 
             titleTextView.text = title
+            categoryTextView.text = category
             timeTextView.text = time
             summaryTextView.text = summary
             noteView.setOnClickListener{
@@ -193,6 +196,7 @@ class MainActivity : AppCompatActivity() {
                         val imagesJsonArray = jsonObject?.getJSONArray("images")
                         val intent = Intent(this@MainActivity, EditActivity::class.java)
                         intent.putExtra("title", title)
+                        intent.putExtra("category", category)
                         intent.putExtra("note", note)
                         intent.putExtra("images", imagesJsonArray.toString())
                         intent.putExtra("username", username)
@@ -210,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == VIEW_NOTE_REQUEST && resultCode == Activity.RESULT_OK && data != null){
             // 获取返回的结果
             val title = data.getStringExtra("title")
+            val category = data.getStringExtra("category")
             val summary = data.getStringExtra("summary")
             val time = data.getStringExtra("time")
             val old_time = data.getStringExtra("old_time")
@@ -229,9 +234,11 @@ class MainActivity : AppCompatActivity() {
                     // 获取标题，时间，和简介TextView
                     val titleTextView = noteView.findViewById<TextView>(R.id.noteTitle)
                     val summaryTextView = noteView.findViewById<TextView>(R.id.noteSummary)
+                    val categoryTextView = noteView.findViewById<TextView>(R.id.noteCategory)
 
                     // 用新的信息替换旧的信息
                     titleTextView.text = title
+                    categoryTextView.text = category
                     timeTextView.text = time
                     summaryTextView.text = summary
 

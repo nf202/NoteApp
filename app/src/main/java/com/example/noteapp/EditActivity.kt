@@ -2,6 +2,7 @@ package com.example.noteapp
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,14 +13,21 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.ImageSpan
+import android.text.style.ClickableSpan
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.util.Base64
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -33,6 +41,10 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 
 
+// 定义音频状态常量
+private val AUDIO_PLAY_NONE = 0
+private val AUDIO_PLAY_ING = 1
+
 fun bitmapToBase64(bitmap: Bitmap): String {
     val byteArrayOutputStream = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
@@ -41,6 +53,9 @@ fun bitmapToBase64(bitmap: Bitmap): String {
 }
 class EditActivity : AppCompatActivity() {
     private val PICK_IMAGE_REQUEST = 1
+    private val PICK_AUDIO_REQUEST = 2
+    private val CAPTURE_IMAGE_REQUEST = 3
+    private val RECORD_AUDIO_REQUEST = 4
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit)
@@ -51,19 +66,27 @@ class EditActivity : AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.saveButton)
         val titleEditText = findViewById<EditText>(R.id.titleEditText)
         val noteEditText = findViewById<EditText>(R.id.noteEditText)
+
+        val categories = arrayOf("备忘", "旅游", "学习") // 类别列表
+        val spinner: Spinner = findViewById(R.id.categorySpinner)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
+
         val username = intent.getStringExtra("username")
-        print(username)
         val mode = intent.getStringExtra("mode")
         var time: String? = null
         // 获取Intent中的额外数据
         if (intent.hasExtra("title")) {
             val title = intent.getStringExtra("title")
+            val category = intent.getStringExtra("category")
             val note = intent.getStringExtra("note")
             val imagesJsonString = intent.getStringExtra("images")
             time = intent.getStringExtra("time")
             // 将title和note显示在对应的控件中
             titleEditText.setText(title)
             noteEditText.setText(note)
+            spinner.setSelection(categories.indexOf(category))
 
             // 将imagesJsonString转换为JSONArray
             val imagesJsonArray = JSONArray(imagesJsonString)
@@ -97,13 +120,48 @@ class EditActivity : AppCompatActivity() {
             }
         }
         addImageButton.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            // 启动图片选择器
-            startActivityForResult(intent, PICK_IMAGE_REQUEST)
+//            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+//            // 启动图片选择器
+//            startActivityForResult(intent, PICK_IMAGE_REQUEST)
+            // 创建一个AlertDialog.Builder对象
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("选择图片来源")
+            builder.setItems(arrayOf("从文件中选择", "拍摄")) { _, which ->
+                when (which) {
+                    0 -> {
+                        // 从文件中选择
+                        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+                    }
+                    1 -> {
+                        // 直接拍摄
+                        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                        startActivityForResult(intent, CAPTURE_IMAGE_REQUEST)
+                    }
+                }
+            }
+            builder.show()
         }
 
         addAudioButton.setOnClickListener {
-            // 在这里编写添加音频的代码
+            // 创建一个AlertDialog.Builder对象
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("选择音频来源")
+            builder.setItems(arrayOf("从文件中选择", "直接录音")) { _, which ->
+                when (which) {
+                    0 -> {
+                        // 从文件中选择
+                        val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+                        startActivityForResult(intent, PICK_AUDIO_REQUEST)
+                    }
+                    1 -> {
+                        // 直接录音
+                        val intent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
+                        startActivityForResult(intent, RECORD_AUDIO_REQUEST)
+                    }
+                }
+            }
+            builder.show()
         }
 
         formatTextButton.setOnClickListener {
@@ -113,6 +171,7 @@ class EditActivity : AppCompatActivity() {
         saveButton.setOnClickListener {
             // 在这里编写保存的代码
             val title = titleEditText.text.toString()
+            val category = spinner.selectedItem.toString()
             val note = noteEditText.text.toString()
             val summary = if (note.length > 10) note.substring(0, 10) else note
             val currentTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
@@ -133,6 +192,7 @@ class EditActivity : AppCompatActivity() {
                     val jsonObject = JSONObject()
                     jsonObject.put("username", username)
                     jsonObject.put("title", title)
+                    jsonObject.put("category", category)
                     jsonObject.put("note", note)
                     jsonObject.put("summary", summary)
                     jsonObject.put("time", currentTime)
@@ -176,6 +236,7 @@ class EditActivity : AppCompatActivity() {
                                     putExtra("title", title)
                                     putExtra("summary", summary)
                                     putExtra("time", currentTime)
+                                    putExtra("category", category)
                                 }
                                 setResult(RESULT_OK, data)
                                 finish()
@@ -186,6 +247,7 @@ class EditActivity : AppCompatActivity() {
                     val jsonObject = JSONObject()
                     jsonObject.put("username", username)
                     jsonObject.put("title", title)
+                    jsonObject.put("category", category)
                     jsonObject.put("note", note)
                     jsonObject.put("summary", summary)
                     jsonObject.put("time", currentTime)
@@ -230,6 +292,7 @@ class EditActivity : AppCompatActivity() {
                                     putExtra("title", title)
                                     putExtra("summary", summary)
                                     putExtra("time", currentTime)
+                                    putExtra("category", category)
                                     putExtra("old_time", time)
                                 }
                                 setResult(RESULT_OK, data)
@@ -293,6 +356,41 @@ class EditActivity : AppCompatActivity() {
 
             // 将新的SpannableStringBuilder设置为EditText的文本
             noteEditText.setText(spannableStringBuilder, TextView.BufferType.SPANNABLE)
+
+        } else if (requestCode == CAPTURE_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            // 处理拍摄的图片
+            val bitmap = data.extras?.get("data") as Bitmap
+            // 获取EditText的引用
+            val noteEditText = findViewById<EditText>(R.id.noteEditText)
+
+            // 获取EditText的宽度
+            val editTextWidth = noteEditText.width
+
+            // 调整图片的大小
+            val imageWidth = editTextWidth
+            val imageHeight = bitmap.height * imageWidth / bitmap.width
+            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, imageWidth, imageHeight, true)
+
+            // 创建一个ImageSpan
+            val imageSpan = ImageSpan(this, scaledBitmap)
+
+            // 创建一个SpannableString
+            val spannableString = SpannableString(" ")
+            spannableString.setSpan(imageSpan, 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+            // 获取EditText的现有文本
+            val existingText = noteEditText.text
+
+            // 创建一个新的SpannableStringBuilder，并将现有的文本和新的SpannableString添加到其中
+            val spannableStringBuilder = SpannableStringBuilder(existingText).append(spannableString)
+
+            // 将新的SpannableStringBuilder设置为EditText的文本
+            noteEditText.setText(spannableStringBuilder, TextView.BufferType.SPANNABLE)
+        } else if (requestCode == PICK_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
+            // 处理从文件中选择的音频
+
+        } else if (requestCode == RECORD_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
+            // 处理录音的结果
 
         }
     }
