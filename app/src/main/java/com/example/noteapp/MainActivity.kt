@@ -8,6 +8,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -27,10 +28,12 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     private lateinit var addButton: FloatingActionButton
+    private lateinit var searchEditText: EditText
     private var username: String? = null
     companion object {
         private const val EDIT_NOTE_REQUEST = 1
         private const val VIEW_NOTE_REQUEST = 2
+        private const val FILTER_NOTE_REQUEST = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +47,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, EditActivity::class.java)
             intent.putExtra("username", username)
             intent.putExtra("mode", "add")
+            startActivityForResult(intent, EDIT_NOTE_REQUEST)
+        }
+        searchEditText = findViewById(R.id.searchEditText)
+        searchEditText.setOnClickListener {
+            val intent = Intent(this, FilterActivity::class.java)
+            intent.putExtra("username", username)
             startActivityForResult(intent, EDIT_NOTE_REQUEST)
         }
         // 创建OkHttpClient
@@ -85,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                     val title = noteJsonObject.getString("title")
                     val summary = noteJsonObject.getString("summary")
                     val time = noteJsonObject.getString("time")
+                    val category = noteJsonObject.getString("category")
 
                     // 为新的笔记创建一个note_item视图
                     val noteView = LayoutInflater.from(this@MainActivity).inflate(R.layout.note_item, null, false)
@@ -93,10 +103,12 @@ class MainActivity : AppCompatActivity() {
                     val titleTextView = noteView.findViewById<TextView>(R.id.noteTitle)
                     val timeTextView = noteView.findViewById<TextView>(R.id.noteTime)
                     val summaryTextView = noteView.findViewById<TextView>(R.id.noteSummary)
+                    val categoryTextView = noteView.findViewById<TextView>(R.id.noteCategory)
 
                     titleTextView.text = title
                     timeTextView.text = time
                     summaryTextView.text = summary
+                    categoryTextView.text = category
                     // 设置点击事件
                     noteView.setOnClickListener{
                         val time_stamp = timeTextView.text
@@ -242,6 +254,41 @@ class MainActivity : AppCompatActivity() {
                     timeTextView.text = time
                     summaryTextView.text = summary
 
+                    // 找到了就跳出循环
+                    break
+                }
+            }
+        }
+        if (requestCode == FILTER_NOTE_REQUEST && resultCode == Activity.RESULT_CANCELED && data != null){
+            // 获取返回的结果
+            val title = data.getStringExtra("title")
+            val category = data.getStringExtra("category")
+            val summary = data.getStringExtra("summary")
+            val time = data.getStringExtra("time")
+            val old_time = data.getStringExtra("old_time")
+
+            // 获取notesLayout
+            val notesLayout = findViewById<LinearLayout>(R.id.notesLayout)
+
+            // 遍历notesLayout中的所有note_item视图
+            for (i in 0 until notesLayout.childCount) {
+                val noteView = notesLayout.getChildAt(i)
+
+                // 获取note_item视图中的时间TextView
+                val timeTextView = noteView.findViewById<TextView>(R.id.noteTime)
+
+                // 如果时间TextView的文本与old_time相同，那么这就是我们要找的note_item视图
+                if (timeTextView.text == old_time) {
+                    // 获取标题，时间，和简介TextView
+                    val titleTextView = noteView.findViewById<TextView>(R.id.noteTitle)
+                    val summaryTextView = noteView.findViewById<TextView>(R.id.noteSummary)
+                    val categoryTextView = noteView.findViewById<TextView>(R.id.noteCategory)
+
+                    // 用新的信息替换旧的信息
+                    titleTextView.text = title
+                    categoryTextView.text = category
+                    timeTextView.text = time
+                    summaryTextView.text = summary
                     // 找到了就跳出循环
                     break
                 }

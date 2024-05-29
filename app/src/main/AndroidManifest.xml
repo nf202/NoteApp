@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -31,6 +32,10 @@
             android:theme="@style/Theme.AppCompat"
             android:windowSoftInputMode="adjustResize">
 <!--            <intent-filter>-->
+<!--                <action android:name="android.provider.MediaStore.RECORD_SOUND" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--            </intent-filter>-->
+<!--            <intent-filter>-->
 <!--                <action android:name="android.intent.action.MAIN" />-->
 
 <!--                <category android:name="android.intent.category.LAUNCHER" />-->
@@ -45,6 +50,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <activity
+            android:name=".FilterActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat">
+        </activity>
+    </application>
 </manifest>

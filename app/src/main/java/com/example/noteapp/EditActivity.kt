@@ -7,6 +7,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Spannable
@@ -26,6 +28,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.util.Base64
+import android.util.Log
+import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import okhttp3.Call
@@ -39,6 +43,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import java.io.File
 
 
 // 定义音频状态常量
@@ -144,6 +149,7 @@ class EditActivity : AppCompatActivity() {
         }
 
         addAudioButton.setOnClickListener {
+            // Todo: 实现录音功能，下面代码存在bug，无法成功处理Intent
             // 创建一个AlertDialog.Builder对象
             val builder = AlertDialog.Builder(this)
             builder.setTitle("选择音频来源")
@@ -151,8 +157,10 @@ class EditActivity : AppCompatActivity() {
                 when (which) {
                     0 -> {
                         // 从文件中选择
+                        Log.d("EditActivity", "Coming here11")
                         val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
                         startActivityForResult(intent, PICK_AUDIO_REQUEST)
+
                     }
                     1 -> {
                         // 直接录音
@@ -162,11 +170,13 @@ class EditActivity : AppCompatActivity() {
                 }
             }
             builder.show()
+
         }
 
-        formatTextButton.setOnClickListener {
-            // 在这里编写格式化文本的代码
-        }
+//        formatTextButton.setOnClickListener {
+//            // 在这里编写格式化文本的代码
+//            // 有空再说
+//        }
 
         saveButton.setOnClickListener {
             // 在这里编写保存的代码
@@ -322,7 +332,7 @@ class EditActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
+        Log.d("EditActivity", resultCode.toString())
         // 检查是否是我们发起的图片选择请求
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             // 获取用户选择的图片的Uri
@@ -387,11 +397,49 @@ class EditActivity : AppCompatActivity() {
             // 将新的SpannableStringBuilder设置为EditText的文本
             noteEditText.setText(spannableStringBuilder, TextView.BufferType.SPANNABLE)
         } else if (requestCode == PICK_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
+            // Todo: 处理选择音频文件的Intent结果
+            Log.d("EditActivity", "Coming here")
             // 处理从文件中选择的音频
+            val selectedAudioUri = data.data
+            Log.d("EditActivity", selectedAudioUri.toString())
+            val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+            val file = File(selectedAudioUri.toString()) // 替换为你的文件路径
+            val contentUri = Uri.fromFile(file)
+            mediaScanIntent.data = contentUri
+            sendBroadcast(mediaScanIntent)
+            // 获取音频的时长
+            val mediaMetadataRetriever = MediaMetadataRetriever()
+            mediaMetadataRetriever.setDataSource(this, selectedAudioUri)
+            val durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationMs = durationStr?.toLong()
+
+            val minutes = (durationMs?.div((1000 * 60)))?.toInt()
+            val seconds = ((durationMs?.div(1000))?.rem(60))?.toInt()
+
+            val durationFormatted = String.format("%02d:%02d", minutes, seconds)
+            Log.d("EditActivity", durationFormatted)
+            print(durationFormatted)
+            val audioView = LayoutInflater.from(this).inflate(R.layout.audio_view, null)
+            val playPauseImageView = audioView.findViewById<ImageView>(R.id.playPauseImageView)
+            val audioTimeTextView = audioView.findViewById<TextView>(R.id.audioTimeTextView)
+            val noteEditText = findViewById<EditText>(R.id.noteEditText)
+            // 存在bug
+
 
         } else if (requestCode == RECORD_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
-            // 处理录音的结果
+            // Todo: 处理录音Intent的结果
+            val recordedAudioUri = data.data
+            val mediaMetadataRetriever = MediaMetadataRetriever()
+            mediaMetadataRetriever.setDataSource(this, recordedAudioUri)
+            val durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationMs = durationStr?.toLong()
 
+            val minutes = (durationMs?.div((1000 * 60)))?.toInt()
+            val seconds = ((durationMs?.div(1000))?.rem(60))?.toInt()
+
+            val durationFormatted = String.format("%02d:%02d", minutes, seconds)
+            print(durationFormatted)
+            // 存在bug
         }
     }
 }
