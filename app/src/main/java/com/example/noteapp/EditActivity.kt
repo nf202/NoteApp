@@ -32,6 +32,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -69,6 +70,7 @@ class EditActivity : AppCompatActivity() {
         val addAudioButton = findViewById<Button>(R.id.addAudioButton)
         val formatTextButton = findViewById<Button>(R.id.formatTextButton)
         val saveButton = findViewById<Button>(R.id.saveButton)
+        val abstract_button = findViewById<FloatingActionButton>(R.id.abstractButton)
         val titleEditText = findViewById<EditText>(R.id.titleEditText)
         val noteEditText = findViewById<EditText>(R.id.noteEditText)
 
@@ -123,6 +125,37 @@ class EditActivity : AppCompatActivity() {
                 // 将新的SpannableString设置为noteEditText的文本
                 noteEditText.setText(spannableString, TextView.BufferType.SPANNABLE)
             }
+        }
+        abstract_button.setOnClickListener {
+            val note = noteEditText.text.toString()
+            val jsonObject = JSONObject()
+            jsonObject.put("note", note)
+            val json = "application/json; charset=utf-8".toMediaType()
+            val body = RequestBody.create(json, jsonObject.toString())
+            val client = OkHttpClient()
+            val request = okhttp3.Request.Builder()
+                .url("http://10.0.2.2:8000/note/wenxin_note/")
+                .post(body)
+                .build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    e.printStackTrace()
+                }
+                override fun onResponse(call: Call, response: Response) {
+                    if (!response.isSuccessful) {
+                        throw IOException("Unexpected code $response")
+                    }
+                    // 处理响应,获取摘要,返回的response为一个文本
+                    val responseBody = response.body?.string()
+                    runOnUiThread {
+                        AlertDialog.Builder(this@EditActivity)
+                            .setTitle("服务器响应")
+                            .setMessage(responseBody)
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            })
         }
         addImageButton.setOnClickListener {
 //            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
