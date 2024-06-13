@@ -23,6 +23,7 @@ class AudioView @JvmOverloads constructor(
     private var mediaPlayer: MediaPlayer? = null
     private var timer: Timer? = null
     private var isPlaying: Boolean = false
+    private var audioUri : Uri? = null
 
     init {
         LayoutInflater.from(context).inflate(R.layout.audio_view, this, true)
@@ -46,6 +47,7 @@ class AudioView @JvmOverloads constructor(
     }
 
     fun setAudioUri(audioUri: Uri) {
+        this.audioUri = audioUri
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
             setDataSource(context, audioUri)
@@ -54,6 +56,10 @@ class AudioView @JvmOverloads constructor(
                 resetAudio()
             }
         }
+    }
+
+    fun getAudioUri() : Uri? {
+        return audioUri
     }
 
     private fun playAudio() {

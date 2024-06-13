@@ -90,6 +90,7 @@ class EditActivity : AppCompatActivity() {
             val category = intent.getStringExtra("category")
             val note = intent.getStringExtra("note")
             val imagesJsonString = intent.getStringExtra("images")
+            val audioJsonString = intent.getStringExtra("audios")
             time = intent.getStringExtra("time")
             // 将title和note显示在对应的控件中
             titleEditText.setText(title)
@@ -125,6 +126,24 @@ class EditActivity : AppCompatActivity() {
 
                 // 将新的SpannableString设置为noteEditText的文本
                 noteEditText.setText(spannableString, TextView.BufferType.SPANNABLE)
+            }
+
+            // 遍历audiosJsonArray, 将base64字符串变成音频文件
+            // 然后生成对应的Uri
+            // 为每一个Uri创建一个AudioView对象, 放到audioLayout里面
+            val audioJsonArray = JSONArray(audioJsonString)
+
+            for (i in 0 until audioJsonArray.length()) {
+                val audioJsonObject = audioJsonArray.getJSONObject(i)
+                val base64 = audioJsonObject.getString("base64")
+                val bytes = Base64.decode(base64, Base64.DEFAULT)
+                val file = File.createTempFile("audio", "3gp", cacheDir)
+                file.writeBytes(bytes)
+                val audioUri = Uri.fromFile(file)
+                val audioView = AudioView(this)
+                audioView.setAudioUri(audioUri)
+                val audioLayout = findViewById<LinearLayout>(R.id.audioLayout)
+                audioLayout.addView(audioView)
             }
         }
         abstract_button.setOnClickListener {
@@ -230,6 +249,29 @@ class EditActivity : AppCompatActivity() {
                 val start = noteEditText.text.getSpanStart(imageSpan)
                 images.add(Pair(start, base64))
             }
+            // 添加音频处理逻辑
+            // 如果audioLayout里面确实有audioView, 就依次读取每一个View里面的Uri, 然后变成base64字符串
+            Log.d("EditActivity", "preparing audios")
+            val audioLayout = findViewById<LinearLayout>(R.id.audioLayout)
+            val audioUris = mutableListOf<Uri>()
+            for (i in 0 until audioLayout.childCount) {
+                val audioView = audioLayout.getChildAt(i) as AudioView
+                val audioUri = audioView.getAudioUri()
+                if (audioUri != null) {
+                    audioUris.add(audioUri)
+                    Log.d("EditActivity", audioUri.toString())
+                }
+            }
+            // 将音频文件转换为base64字符串
+            val audioBase64s = mutableListOf<String>()
+            for (audioUri in audioUris) {
+                val inputStream = contentResolver.openInputStream(audioUri)
+                val bytes = inputStream?.readBytes()
+                if (bytes != null) {
+                    val base64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+                    audioBase64s.add(base64)
+                }
+            }
             Thread {
                 // 构建你的 JSON 数据
                 if(mode == "add") {
@@ -241,6 +283,7 @@ class EditActivity : AppCompatActivity() {
                     jsonObject.put("summary", summary)
                     jsonObject.put("time", currentTime)
                     val imagesJsonArray = JSONArray()
+                    val audioJSONArray = JSONArray()
                     for (image in images) {
                         val imageJsonObject = JSONObject()
                         imageJsonObject.put("start", image.first)
@@ -248,6 +291,12 @@ class EditActivity : AppCompatActivity() {
                         imagesJsonArray.put(imageJsonObject)
                     }
                     jsonObject.put("images", imagesJsonArray)
+                    for (audioBase64 in audioBase64s) {
+                        val audioJsonObject = JSONObject()
+                        audioJsonObject.put("base64", audioBase64)
+                        audioJSONArray.put(audioJsonObject)
+                    }
+                    jsonObject.put("audios", audioJSONArray)
                     val json = "application/json; charset=utf-8".toMediaType()
                     val body = RequestBody.create(json, jsonObject.toString())
                     val request = Request.Builder()
@@ -297,6 +346,7 @@ class EditActivity : AppCompatActivity() {
                     jsonObject.put("time", currentTime)
                     jsonObject.put("old_time", time)
                     val imagesJsonArray = JSONArray()
+                    val audioJSONArray = JSONArray()
                     for (image in images) {
                         val imageJsonObject = JSONObject()
                         imageJsonObject.put("start", image.first)
@@ -304,6 +354,12 @@ class EditActivity : AppCompatActivity() {
                         imagesJsonArray.put(imageJsonObject)
                     }
                     jsonObject.put("images", imagesJsonArray)
+                    for (audioBase64 in audioBase64s) {
+                        val audioJsonObject = JSONObject()
+                        audioJsonObject.put("base64", audioBase64)
+                        audioJSONArray.put(audioJsonObject)
+                    }
+                    jsonObject.put("audios", audioJSONArray)
                     val json = "application/json; charset=utf-8".toMediaType()
                     val body = RequestBody.create(json, jsonObject.toString())
                     val request = Request.Builder()
