@@ -5,10 +5,14 @@ import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.util.Base64
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -29,11 +33,14 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
     private lateinit var addButton: FloatingActionButton
     private lateinit var searchEditText: EditText
+    private lateinit var avatarImageView: ImageView
+    private lateinit var changepassImageView: ImageView
     private var username: String? = null
     companion object {
         private const val EDIT_NOTE_REQUEST = 1
         private const val VIEW_NOTE_REQUEST = 2
         private const val FILTER_NOTE_REQUEST = 3
+        private const val EDIT_INFO_REQUEST = 4
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +48,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         username = intent.getStringExtra("username")
-        print(username)
         addButton = findViewById(R.id.addButton)
         addButton.setOnClickListener {
             val intent = Intent(this, EditActivity::class.java)
@@ -55,6 +61,62 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("username", username)
             startActivityForResult(intent, EDIT_NOTE_REQUEST)
         }
+        changepassImageView = findViewById(R.id.changepassImageView)
+        changepassImageView.setOnClickListener {
+            val intent = Intent(this, ChangePassActivity::class.java)
+            intent.putExtra("username", username)
+            startActivity(intent)
+        }
+        avatarImageView = findViewById(R.id.avatarImageView)
+        avatarImageView.setOnClickListener {
+            val intent = Intent(this, InfoActivity::class.java)
+            intent.putExtra("username", username)
+            startActivityForResult(intent, EDIT_INFO_REQUEST)
+        }
+        // 向服务器发送请求，获取头像,并显示在ImageView中
+        // Create OkHttpClient
+        val client0 = OkHttpClient()
+        val jsonObject0 = JSONObject()
+        jsonObject0.put("username", username)
+        val json0 = "application/json; charset=utf-8".toMediaType()
+        val body0 = RequestBody.create(json0, jsonObject0.toString())
+        val request0 = Request.Builder()
+            .url("http://10.0.2.2:8000/user/get_avatar/")
+            .post(body0)
+            .build()
+        client0.newCall(request0).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    throw IOException("Unexpected code $response")
+                }
+                // Get JSON string from response body
+                val jsonString = response.body?.string()
+
+                // Convert JSON string to JSONObject
+                val jsonObject = JSONObject(jsonString)
+
+                // Get Base64 encoded avatar string from JSONObject
+                val encodedAvatar = jsonObject.getString("avatar")
+                if(encodedAvatar != "null"){
+                    // Decode Base64 encoded avatar string to byte array
+                    val decodedString = Base64.decode(encodedAvatar, Base64.DEFAULT)
+
+                    // Convert byte array to Bitmap
+                    val decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+
+                    // Set Bitmap to ImageView in UI thread
+                    runOnUiThread {
+                        avatarImageView.setImageBitmap(decodedByte)
+                    }
+                }
+
+            }
+        })
+
         // 创建OkHttpClient
         val client = OkHttpClient()
         // 创建请求体
@@ -293,6 +355,25 @@ class MainActivity : AppCompatActivity() {
                     break
                 }
             }
+        }
+        if (requestCode == EDIT_INFO_REQUEST && resultCode == Activity.RESULT_OK && data != null){
+            val new_username = data.getStringExtra("new_username")
+            Log.e("MainActivity", "new_username: $new_username")
+            username = new_username
+            val new_avatar = data.getStringExtra("avatar")
+            if(new_avatar != "null"){
+                // Decode Base64 encoded avatar string to byte array
+                val decodedString = Base64.decode(new_avatar, Base64.DEFAULT)
+
+                // Convert byte array to Bitmap
+                val decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+
+                // Set Bitmap to ImageView in UI thread
+                runOnUiThread {
+                    avatarImageView.setImageBitmap(decodedByte)
+                }
+            }
+
         }
     }
 }

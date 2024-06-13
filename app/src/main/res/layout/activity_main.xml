@@ -44,13 +44,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <!-- 在这里动态添加笔记视图 -->
-
             </LinearLayout>
         </ScrollView>
 
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/avatarImageView"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="用户头像"
+        android:src="@drawable/default_avatar_icon" />
+
+    <ImageView
+        android:id="@+id/changepassImageView"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="修改密码图标"
+        android:src="@drawable/changepass_icon" />
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addButton"
