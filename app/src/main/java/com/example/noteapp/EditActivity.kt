@@ -32,6 +32,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import com.example.noteapp.ui.theme.AudioView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import okhttp3.Call
 import okhttp3.Callback
@@ -191,7 +192,7 @@ class EditActivity : AppCompatActivity() {
                     0 -> {
                         // 从文件中选择
                         Log.d("EditActivity", "Coming here11")
-                        val intent = Intent(Intent.ACTION_PICK, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+                        val intent = Intent(Intent.ACTION_GET_CONTENT, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
                         startActivityForResult(intent, PICK_AUDIO_REQUEST)
 
                     }
@@ -431,48 +432,31 @@ class EditActivity : AppCompatActivity() {
             noteEditText.setText(spannableStringBuilder, TextView.BufferType.SPANNABLE)
         } else if (requestCode == PICK_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
             // Todo: 处理选择音频文件的Intent结果
-            Log.d("EditActivity", "Coming here")
-            // 处理从文件中选择的音频
+            // 获取用户选择的音频文件的Uri
             val selectedAudioUri = data.data
-            Log.d("EditActivity", selectedAudioUri.toString())
-            val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-            val file = File(selectedAudioUri.toString()) // 替换为你的文件路径
-            val contentUri = Uri.fromFile(file)
-            mediaScanIntent.data = contentUri
-            sendBroadcast(mediaScanIntent)
-            // 获取音频的时长
-            val mediaMetadataRetriever = MediaMetadataRetriever()
-            mediaMetadataRetriever.setDataSource(this, selectedAudioUri)
-            val durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val durationMs = durationStr?.toLong()
-
-            val minutes = (durationMs?.div((1000 * 60)))?.toInt()
-            val seconds = ((durationMs?.div(1000))?.rem(60))?.toInt()
-
-            val durationFormatted = String.format("%02d:%02d", minutes, seconds)
-            Log.d("EditActivity", durationFormatted)
-            print(durationFormatted)
-            val audioView = LayoutInflater.from(this).inflate(R.layout.audio_view, null)
-            val playPauseImageView = audioView.findViewById<ImageView>(R.id.playPauseImageView)
-            val audioTimeTextView = audioView.findViewById<TextView>(R.id.audioTimeTextView)
-            val noteEditText = findViewById<EditText>(R.id.noteEditText)
-            // 存在bug
-
-
+            // 创建一个AudioView
+            val audioView = AudioView(this)
+            // 设置音频文件的Uri
+            if (selectedAudioUri != null) {
+                audioView.setAudioUri(selectedAudioUri)
+            }
+            // 放在当前时间布局的最后
+            val audioLayout = findViewById<LinearLayout>(R.id.audioLayout)
+            // 往其中加入audioView对象:
+            audioLayout.addView(audioView)
         } else if (requestCode == RECORD_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
             // Todo: 处理录音Intent的结果
-            val recordedAudioUri = data.data
-            val mediaMetadataRetriever = MediaMetadataRetriever()
-            mediaMetadataRetriever.setDataSource(this, recordedAudioUri)
-            val durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val durationMs = durationStr?.toLong()
-
-            val minutes = (durationMs?.div((1000 * 60)))?.toInt()
-            val seconds = ((durationMs?.div(1000))?.rem(60))?.toInt()
-
-            val durationFormatted = String.format("%02d:%02d", minutes, seconds)
-            print(durationFormatted)
-            // 存在bug
+            val selectedAudioUri = data.data
+            // 创建一个AudioView
+            val audioView = AudioView(this)
+            // 设置音频文件的Uri
+            if (selectedAudioUri != null) {
+                audioView.setAudioUri(selectedAudioUri)
+            }
+            // 放在当前时间布局的最后
+            val audioLayout = findViewById<LinearLayout>(R.id.audioLayout)
+            // 往其中加入audioView对象:
+            audioLayout.addView(audioView)
         }
     }
 }
