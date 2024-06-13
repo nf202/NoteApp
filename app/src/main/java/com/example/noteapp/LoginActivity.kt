@@ -51,24 +51,8 @@ class LoginActivity : AppCompatActivity() {
 
         registerButton.setOnClickListener {
             //逻辑不对，理论上应该进入一个新的页面，或者将本页面的一些元素进行一下修改
-//            val username = usernameEditText.text.toString()
-//            val password = passwordEditText.text.toString()
-//            if (username.isNotEmpty() && password.isNotEmpty()) {
-//                // 向服务器发送请求，注册新用户
-//                Thread {
-//
-//                    val response = sendPostRequest("http://127.0.0.1:8000/user/register", "username=$username&password=$password")
-//                    // 在这里处理服务器的响应
-//                    runOnUiThread {
-//                        AlertDialog.Builder(this@LoginActivity)
-//                            .setTitle("服务器响应")
-//                            .setMessage(response)
-//                            .setPositiveButton("OK", null)
-//                            .show()
-//                    }
-//                }.start()
-//            }
-
+            val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
+            startActivity(intent)
         }
     }
 }
