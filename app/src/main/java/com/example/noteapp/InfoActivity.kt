@@ -38,8 +38,9 @@ class InfoActivity : AppCompatActivity() {
     private lateinit var profileImageView: ImageView
     private lateinit var usernameEditText: EditText
     private lateinit var signatureEditText: EditText
+    private lateinit var encodedImage: String
     private lateinit var saveButton: Button
-
+    private var avatar_changed = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_info)
@@ -54,7 +55,7 @@ class InfoActivity : AppCompatActivity() {
         Thread {
             // 向服务器发送请求，根据用户名获取用户信息，填充到控件中
             val response = sendPostRequest(
-                "http://10.0.2.2:8000/user/get_info/",
+                "http://127.0.0.1:8000/user/get_info/",
                 "username=$old_username"
             )
 
@@ -62,7 +63,7 @@ class InfoActivity : AppCompatActivity() {
             val jsonResponse = JSONObject(response)
             val username = jsonResponse.getString("username")
             val signature = jsonResponse.getString("signature")
-            val encodedImage = jsonResponse.getString("avatar")
+            encodedImage = jsonResponse.getString("avatar")
             Log.e("InfoActivity", "have got the info")
             // 判断是否有头像
             if (encodedImage == "null") {
@@ -99,14 +100,15 @@ class InfoActivity : AppCompatActivity() {
             val new_username = usernameEditText.text.toString()
             val signature = signatureEditText.text.toString()
 
-            // Convert the profile image to a Base64 string
-            // 获取ImageView中的Bitmap
-            val bitmap = (profileImageView.drawable as BitmapDrawable).bitmap
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-            val byteArray = byteArrayOutputStream.toByteArray()
-            val encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT)
-
+            if (encodedImage != "null" || avatar_changed == 1) {
+                // Convert the profile image to a Base64 string
+                // 获取ImageView中的Bitmap
+                val bitmap = (profileImageView.drawable as BitmapDrawable).bitmap
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT)
+            }
             val jsonObject = JSONObject()
             jsonObject.put("old_username", old_username)
             jsonObject.put("new_username", new_username)
@@ -117,7 +119,7 @@ class InfoActivity : AppCompatActivity() {
             val body = RequestBody.create(json, jsonObject.toString())
             val client = OkHttpClient()
             val request = okhttp3.Request.Builder()
-                .url("http://10.0.2.2:8000/user/set_info/")
+                .url("http://127.0.0.1:8000/user/set_info/")
                 .post(body)
                 .build()
             client.newCall(request).enqueue(object : Callback {
@@ -149,6 +151,8 @@ class InfoActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            avatar_changed = 1
+            Log.d("InfoActivity", "avatar changed")
             val selectedImage: Uri? = data.data
             val imageStream: InputStream? = selectedImage?.let { contentResolver.openInputStream(it) }
             val selectedImageBitmap: Bitmap = BitmapFactory.decodeStream(imageStream)

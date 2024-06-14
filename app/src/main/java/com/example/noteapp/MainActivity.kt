@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         val json0 = "application/json; charset=utf-8".toMediaType()
         val body0 = RequestBody.create(json0, jsonObject0.toString())
         val request0 = Request.Builder()
-            .url("http://10.0.2.2:8000/user/get_avatar/")
+            .url("http://127.0.0.1:8000/user/get_avatar/")
             .post(body0)
             .build()
         client0.newCall(request0).enqueue(object : Callback {
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 
         // 创建请求
         val request = Request.Builder()
-            .url("http://10.0.2.2:8000/note/get_all_notes/")
+            .url("http://127.0.0.1:8000/note/get_all_notes/")
             .post(body)
             .build()
 
@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
                         val body = RequestBody.create(json, jsonObject.toString())
                         val client = OkHttpClient()
                         val request = okhttp3.Request.Builder()
-                            .url("http://10.0.2.2:8000/note/get_note/")
+                            .url("http://127.0.0.1:8000/note/get_note/")
                             .post(body)
                             .build()
                         client.newCall(request).enqueue(object : Callback {
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity() {
                 val body = RequestBody.create(json, jsonObject.toString())
                 val client = OkHttpClient()
                 val request = okhttp3.Request.Builder()
-                    .url("http://10.0.2.2:8000/note/get_note/")
+                    .url("http://127.0.0.1:8000/note/get_note/")
                     .post(body)
                     .build()
                 client.newCall(request).enqueue(object : Callback {

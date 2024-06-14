@@ -51,7 +51,7 @@ class RegisterActivity : AppCompatActivity() {
         Thread {
             // 向服务器发送请求，验证用户名和密码
             val response = sendPostRequest(
-                "http://10.0.2.2:8000/user/register/",
+                "http://127.0.0.1:8000/user/register/",
                 "username=$username&password=$password&telephone=$telephone"
             )
             // 在这里处理服务器的响应

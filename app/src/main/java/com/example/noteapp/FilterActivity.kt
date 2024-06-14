@@ -84,7 +84,7 @@ class FilterActivity : AppCompatActivity() {
 
         // 创建请求
         val request = Request.Builder()
-            .url("http://10.0.2.2:8000/note/filter_note/")
+            .url("http://127.0.0.1:8000/note/filter_note/")
             .post(body)
             .build()
 
@@ -138,7 +138,7 @@ class FilterActivity : AppCompatActivity() {
                         val body = RequestBody.create(json, jsonObject.toString())
                         val client = OkHttpClient()
                         val request = okhttp3.Request.Builder()
-                            .url("http://10.0.2.2:8000/note/get_note/")
+                            .url("http://127.0.0.1:8000/note/get_note/")
                             .post(body)
                             .build()
                         client.newCall(request).enqueue(object : Callback {
@@ -155,10 +155,12 @@ class FilterActivity : AppCompatActivity() {
                                 val title = jsonObject?.getString("title")
                                 val note = jsonObject?.getString("note")
                                 val imagesJsonArray = jsonObject?.getJSONArray("images")
+                                val audiosJsonArray = jsonObject?.getJSONArray("audios")
                                 val intent = Intent(this@FilterActivity, EditActivity::class.java)
                                 intent.putExtra("title", title)
                                 intent.putExtra("note", note)
                                 intent.putExtra("images", imagesJsonArray.toString())
+                                intent.putExtra("audios", audiosJsonArray.toString())
                                 intent.putExtra("username", username)
                                 intent.putExtra("time", time_stamp.toString())
                                 intent.putExtra("mode", "view")
