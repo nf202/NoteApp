@@ -64,68 +64,73 @@
         android:orientation="vertical">
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:orientation="horizontal">
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true">
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3" />
 
-        <Button
-            android:id="@+id/addImageButton"
-            android:layout_width="25dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/picturebutton_icon"
-            android:scaleType="fitCenter" />
+            <Button
+                android:id="@+id/addImageButton"
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/picturebutton_icon"
+                android:scaleType="fitCenter" />
 
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3" />
 
-        <Button
-            android:id="@+id/addAudioButton"
-            android:layout_width="25dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/voicebutton_icon"
-            android:scaleType="fitCenter" />
+            <Button
+                android:id="@+id/addAudioButton"
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/voicebutton_icon"
+                android:scaleType="fitCenter" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3" />
 
-        <Button
-            android:id="@+id/formatTextButton"
-            android:layout_width="25dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/textbutton_icon"
-            android:scaleType="fitCenter" />
+            <Button
+                android:id="@+id/formatTextButton"
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/textbutton_icon"
+                android:scaleType="fitCenter" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3" />
 
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="25dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/savebutton_icon"
-            android:scaleType="fitCenter" />
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3" />
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="25dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/savebutton_icon"
+                android:scaleType="fitCenter" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3" />
 
-    </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
