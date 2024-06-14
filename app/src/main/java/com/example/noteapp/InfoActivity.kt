@@ -55,7 +55,7 @@ class InfoActivity : AppCompatActivity() {
         Thread {
             // 向服务器发送请求，根据用户名获取用户信息，填充到控件中
             val response = sendPostRequest(
-                "http://127.0.0.1:8000/user/get_info/",
+                "http://10.0.2.2:8000/user/get_info/",
                 "username=$old_username"
             )
 
@@ -119,7 +119,7 @@ class InfoActivity : AppCompatActivity() {
             val body = RequestBody.create(json, jsonObject.toString())
             val client = OkHttpClient()
             val request = okhttp3.Request.Builder()
-                .url("http://127.0.0.1:8000/user/set_info/")
+                .url("http://10.0.2.2:8000/user/set_info/")
                 .post(body)
                 .build()
             client.newCall(request).enqueue(object : Callback {

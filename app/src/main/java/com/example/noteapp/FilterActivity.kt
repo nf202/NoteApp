@@ -84,7 +84,7 @@ class FilterActivity : AppCompatActivity() {
 
         // 创建请求
         val request = Request.Builder()
-            .url("http://127.0.0.1:8000/note/filter_note/")
+            .url("http://10.0.2.2:8000/note/filter_note/")
             .post(body)
             .build()
 
@@ -138,7 +138,7 @@ class FilterActivity : AppCompatActivity() {
                         val body = RequestBody.create(json, jsonObject.toString())
                         val client = OkHttpClient()
                         val request = okhttp3.Request.Builder()
-                            .url("http://127.0.0.1:8000/note/get_note/")
+                            .url("http://10.0.2.2:8000/note/get_note/")
                             .post(body)
                             .build()
                         client.newCall(request).enqueue(object : Callback {

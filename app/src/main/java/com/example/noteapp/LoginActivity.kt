@@ -27,7 +27,7 @@ class LoginActivity : AppCompatActivity() {
                 Thread {
                     // 向服务器发送请求，验证用户名和密码
                     val response = sendPostRequest(
-                        "http://127.0.0.1:8000/user/login/",
+                        "http://10.0.2.2:8000/user/login/",
                         "username=$username&password=$password"
                     )
                     // 在这里处理服务器的响应
