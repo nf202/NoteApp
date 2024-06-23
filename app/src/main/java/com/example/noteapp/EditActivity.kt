@@ -202,7 +202,6 @@ class EditActivity : AppCompatActivity() {
         }
 
         addAudioButton.setOnClickListener {
-            // Todo: 实现录音功能，下面代码存在bug，无法成功处理Intent
             // 创建一个AlertDialog.Builder对象
             val builder = AlertDialog.Builder(this)
             builder.setTitle("选择音频来源")
@@ -487,7 +486,6 @@ class EditActivity : AppCompatActivity() {
             // 将新的SpannableStringBuilder设置为EditText的文本
             noteEditText.setText(spannableStringBuilder, TextView.BufferType.SPANNABLE)
         } else if (requestCode == PICK_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
-            // Todo: 处理选择音频文件的Intent结果
             // 获取用户选择的音频文件的Uri
             val selectedAudioUri = data.data
             // 创建一个AudioView
@@ -501,7 +499,6 @@ class EditActivity : AppCompatActivity() {
             // 往其中加入audioView对象:
             audioLayout.addView(audioView)
         } else if (requestCode == RECORD_AUDIO_REQUEST && resultCode == RESULT_OK && data != null) {
-            // Todo: 处理录音Intent的结果
             val selectedAudioUri = data.data
             // 创建一个AudioView
             val audioView = AudioView(this)
